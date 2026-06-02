@@ -1,0 +1,104 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --header-bg: #4CAF50;
+    --nav-bg: #f4f4f4;
+    --accent-color: #4CAF50;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+}
+
+main {
+    flex: 1;
+    display: flex;
+}
+
+nav {
+    width: 200px;
+    background: var(--nav-bg);
+    padding: 1rem;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav li {
+    margin-bottom: 0.5rem;
+}
+
+nav a {
+    color: inherit;
+    text-decoration: none;
+}
+
+section {
+    flex: 1;
+    padding: 1rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.login-form,
+.task-list,
+.settings {
+    max-width: 400px;
+    margin: auto;
+}
+
+input,
+select,
+button {
+    width: 100%;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    box-sizing: border-box;
+}
+
+button {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.task-item {
+    border-bottom: 1px solid #ddd;
+    padding: 0.5rem 0;
+}
+
+/* Dark theme overrides */
+.theme-dark {
+    --bg-color: #333333;
+    --text-color: #ffffff;
+    --header-bg: #222222;
+    --nav-bg: #444444;
+    --accent-color: #66bb6a;
+}

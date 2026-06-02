@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Weather App</h1>
+    </header>
+    <main>
+        <!-- Authentication Section -->
+        <section id="auth-section">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" name="email" required />
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" required />
+                <button type="submit">Login</button>
+            </form>
+            <h2>Register</h2>
+            <form id="register-form">
+                <label for="register-email">Email:</label>
+                <input type="email" id="register-email" name="email" required />
+                <label for="register-password">Password:</label>
+                <input type="password" id="register-password" name="password" required />
+                <button type="submit">Register</button>
+            </form>
+        </section>
+
+        <!-- Hidden Task UI (shown after successful authentication) -->
+        <section id="task-section" style="display: none;">
+            <aside id="user-sidebar">
+                <h2>User Info</h2>
+                <div id="user-display">User: <span id="username"></span></div>
+                <button id="logout-btn">Logout</button>
+            </aside>
+
+            <section id="task-input">
+                <h2>Create Task</h2>
+                <form id="task-form">
+                    <label for="task-title">Title:</label>
+                    <input type="text" id="task-title" name="title" required />
+                    <label for="task-description">Description:</label>
+                    <textarea id="task-description" name="description" required></textarea>
+                    <label for="task-due-date">Due Date:</label>
+                    <input type="date" id="task-due-date" name="dueDate" required />
+                    <button type="submit">Add Task</button>
+                </form>
+            </section>
+
+            <section id="task-display">
+                <h2>Tasks</h2>
+                <div id="task-list"></div>
+            </section>
+        </section>
+    </main>
+</body>
+</html>
