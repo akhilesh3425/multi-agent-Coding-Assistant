@@ -1,0 +1,52 @@
+{
+  "weatherData": [
+    {
+      "location": "New York",
+      "temperature": {
+        "current": 22,
+        "high": 25,
+        "low": 18
+      },
+      "precipitation": {
+        "chance": 10,
+        "amount": 0.0
+      }
+    },
+    {
+      "location": "Los Angeles",
+      "temperature": {
+        "current": 28,
+        "high": 30,
+        "low": 20
+      },
+      "precipitation": {
+        "chance": 5,
+        "amount": 0.0
+      }
+    },
+    {
+      "location": "Chicago",
+      "temperature": {
+        "current": 20,
+        "high": 23,
+        "low": 15
+      },
+      "precipitation": {
+        "chance": 20,
+        "amount": 0.2
+      }
+    },
+    {
+      "location": "Miami",
+      "temperature": {
+        "current": 30,
+        "high": 32,
+        "low": 25
+      },
+      "precipitation": {
+        "chance": 15,
+        "amount": 0.1
+      }
+    }
+  ]
+}

@@ -36,10 +36,10 @@ set_debug(True)
 set_verbose(True)
 
 # ── Per-agent models ──────────────────────────────────────────────────────────
-planner_llm   = ChatOpenAI(model="gpt-4o-mini")
-architect_llm = ChatOpenAI(model="gpt-4o-mini")  # reliable structured output
-coder_llm     = ChatOpenAI(model="gpt-4o-mini")
-reviewer_llm  = ChatOpenAI(model="gpt-4o-mini")
+planner_llm   = ChatGroq(model="llama-3.3-70b-versatile")
+architect_llm = ChatGroq(model="llama-3.3-70b-versatile")  # reliable structured output
+coder_llm     = ChatOpenAI(model="gpt-4o-mini")            # Openai handles large file-writing tool calls reliably
+reviewer_llm  = ChatGroq(model="llama-3.3-70b-versatile")
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -103,16 +103,23 @@ def coder_agent(state: dict) -> dict:
     coder_state: CoderState = state.get("coder_state")
     if coder_state is None:
         _emit(state, "agent_start", {"agent": "coder"})
-        coder_state = CoderState(task_plan=state["task_plan"], current_step_idx=0)
-
+        
         # ── Create a unique output folder for this project ──────────────────
         plan: Plan = state["task_plan"].plan
         safe_name = re.sub(r"[^\w\-]", "_", plan.name)[:40].strip("_") or "project"
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         project_dir = pathlib.Path.cwd() / "generated_projects" / f"{safe_name}_{timestamp}"
+        coder_state = CoderState(
+            task_plan=state["task_plan"], 
+            current_step_idx=0,
+            project_dir=str(project_dir)
+        )
         set_project_root(project_dir)
         _emit(state, "project_dir", {"path": str(project_dir.name)})
         _emit(state, "log", {"agent": "coder", "line": f"[CODER] Output folder: generated_projects/{project_dir.name}"})
+
+    if coder_state.project_dir:
+        set_project_root(pathlib.Path(coder_state.project_dir))
 
     steps = coder_state.task_plan.implementation_steps
     if coder_state.current_step_idx >= len(steps):
@@ -147,7 +154,7 @@ def coder_agent(state: dict) -> dict:
     _emit(state, "log", {"agent": "coder", "line": f"[CODER] ✓ WROTE: {current_task.filepath}"})
     _emit(state, "file_written", {"path": current_task.filepath})
     coder_state.current_step_idx += 1
-    return {"coder_state": coder_state}
+    return {"coder_state": coder_state, "status": "WORKING"}
 
 
 def reviewer_agent(state: dict) -> dict:
@@ -175,12 +182,20 @@ graph.add_node("reviewer", reviewer_agent)
 
 graph.add_edge("planner", "architect")
 graph.add_edge("architect", "coder")
+def _route_coder(state: dict):
+    cs = state.get("coder_state")
+    if cs and cs.task_plan:
+        if cs.current_step_idx >= len(cs.task_plan.implementation_steps):
+            return "reviewer"
+    return "coder"
+
 graph.add_conditional_edges(
     "coder",
-    lambda s: "reviewer" if s.get("status") == "REVIEW" else "coder",
+    _route_coder,
     {"reviewer": "reviewer", "coder": "coder"}
 )
 graph.add_edge("reviewer", END)
+
 
 graph.set_entry_point("planner")
 agent = graph.compile()

@@ -1,47 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator App</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <header>
-        <nav>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About</a></li>
-            </ul>
-        </nav>
-        <h1>Calculator App</h1>
+      <h1>Weather Dashboard</h1>
     </header>
     <main>
-        <div class="calculator">
-            <input type="text" id="display" readonly />
-            <div class="keys">
-                <button id="btnClear">C</button>
-                <button id="btnEquals">=</button>
-                <button id="btn0">0</button>
-                <button id="btn1">1</button>
-                <button id="btn2">2</button>
-                <button id="btn3">3</button>
-                <button id="btn4">4</button>
-                <button id="btn5">5</button>
-                <button id="btn6">6</button>
-                <button id="btn7">7</button>
-                <button id="btn8">8</button>
-                <button id="btn9">9</button>
-                <button id="btnAdd">+</button>
-                <button id="btnSubtract">-</button>
-                <button id="btnMultiply">*</button>
-                <button id="btnDivide">/</button>
-            </div>
+      <section id="weather-data">
+        <h2>Current Weather</h2>
+        <!-- Weather data display will be dynamically inserted here -->
+      </section>
+      <section id="charts">
+        <h2>Interactive Charts</h2>
+        <!-- Charts will be rendered here -->
+      </section>
+      <section id="calendar-container">
+        <h1>Calendar</h1>
+        <div class="month-display">
+          <!-- Current month will be displayed here -->
         </div>
+        <div class="grid">
+          <!-- Weekdays and dates will be rendered here -->
+        </div>
+      </section>
     </main>
     <footer>
-        <p>&copy; 2024 Calculator App</p>
+      <p>&copy; 2023 Weather Dashboard. All rights reserved.</p>
     </footer>
-    <script src="script.js"></script>
-</body>
+    <script src="app.js"></script>
+    <script src="calendar.js"></script>
+    <script>
+      function initializeCalendar() {
+        // Functionality to populate the calendar grid with dates and highlight the current date will go here.
+      }
+    </script>
+  </body>
 </html>

@@ -32,7 +32,7 @@ export default function AboutSection() {
             >
               Hello!
               <br />
-              I'm Jarvis,
+              I'm Rana,
               <br />
               your AI coding companion.
             </h2>

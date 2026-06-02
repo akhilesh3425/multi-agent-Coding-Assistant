@@ -68,8 +68,15 @@ def _run_agent_thread(prompt: str, eq: "queue.Queue[dict | None]") -> None:
             {"recursion_limit": 100},
         )
 
+        from agent.tools import get_project_root
+        project_dir = get_project_root()
+        try:
+            rel_path = project_dir.relative_to(pathlib.Path.cwd())
+        except ValueError:
+            rel_path = project_dir
+
         eq.put({"event": "log", "data": {"agent": "success", "line": "✓ Project generation complete!"}})
-        eq.put({"event": "log", "data": {"agent": "success", "line": "  Output directory: generated_project/"}})
+        eq.put({"event": "log", "data": {"agent": "success", "line": f"  Output directory: {rel_path.as_posix()}/"}})
         eq.put({"event": "done", "data": {"status": "complete"}})
 
     except Exception as exc:
@@ -178,7 +185,6 @@ async def run_local(project_dir: str):
     if project_dir in _active_project_servers:
         port = _active_project_servers[project_dir]
         url = f"http://localhost:{port}"
-        webbrowser.open(url)
         return {"status": "already_running", "port": port, "url": url}
 
     port = get_free_port()
@@ -193,7 +199,6 @@ async def run_local(project_dir: str):
     url = f"http://localhost:{port}"
     
     await asyncio.sleep(0.5)
-    webbrowser.open(url)
     
     return {"status": "started", "port": port, "url": url}
 

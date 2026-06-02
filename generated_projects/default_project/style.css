@@ -1,104 +1,118 @@
-:root {
-    --bg-color: #ffffff;
-    --text-color: #000000;
-    --header-bg: #4CAF50;
-    --nav-bg: #f4f4f4;
-    --accent-color: #4CAF50;
-}
-
-body {
+.todo-app {
     font-family: Arial, sans-serif;
-    margin: 0;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.todo-list {
+    list-style-type: none;
     padding: 0;
-    background: var(--bg-color);
-    color: var(--text-color);
 }
 
-.container {
+.todo-item {
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
-header {
-    background: var(--header-bg);
-    color: #fff;
-    padding: 1rem;
+.todo-item:hover {
+    background-color: #f0f0f0;
+}
+
+.todo-item.completed {
+    text-decoration: line-through;
+    color: #a0a0a0;
+}
+
+.auth-section {
+    margin: 20px 0;
     text-align: center;
 }
 
-main {
-    flex: 1;
-    display: flex;
+.auth-section input {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-nav {
-    width: 200px;
-    background: var(--nav-bg);
-    padding: 1rem;
-}
-
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-nav li {
-    margin-bottom: 0.5rem;
-}
-
-nav a {
-    color: inherit;
-    text-decoration: none;
-}
-
-section {
-    flex: 1;
-    padding: 1rem;
-}
-
-.hidden {
-    display: none;
-}
-
-.login-form,
-.task-list,
-.settings {
-    max-width: 400px;
-    margin: auto;
-}
-
-input,
-select,
-button {
-    width: 100%;
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-    box-sizing: border-box;
-}
-
-button {
-    background: var(--accent-color);
-    color: #fff;
+.auth-section button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-section button:hover {
+    background-color: #45a049;
+}
+
+@media (max-width: 600px) {
+    .todo-app {
+        padding: 10px;
+    }
+    .todo-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .auth-section {
+        flex-direction: column;
+    }
+}
+
+/* Colorful Theme Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+.theme-light {
+    --bg-color: #fff;
+    --text-color: #333;
+    --button-bg: #4CAF50;
+    --button-hover-bg: #45a049;
+}
+
+.theme-dark {
+    --bg-color: #222;
+    --text-color: #fff;
+    --button-bg: #555;
+    --button-hover-bg: #666;
+}
+
+.theme-colorful {
+    --bg-color: #ffeb3b;
+    --text-color: #000;
+    --button-bg: #f44336;
+    --button-hover-bg: #c62828;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+button {
+    background-color: var(--button-bg);
 }
 
 button:hover {
-    opacity: 0.9;
-}
-
-.task-item {
-    border-bottom: 1px solid #ddd;
-    padding: 0.5rem 0;
-}
-
-/* Dark theme overrides */
-.theme-dark {
-    --bg-color: #333333;
-    --text-color: #ffffff;
-    --header-bg: #222222;
-    --nav-bg: #444444;
-    --accent-color: #66bb6a;
+    background-color: var(--button-hover-bg);
 }

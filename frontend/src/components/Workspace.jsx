@@ -42,6 +42,22 @@ export default function Workspace({ agentStates, logs, plan, taskPlan, projectDi
   const progressRef = useRef(null);
   const planRef     = useRef(null);
   const [expandedTask, setExpandedTask] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [activeTab, setActiveTab] = useState('terminal'); // 'terminal' or 'preview'
+
+  const handlePreview = async () => {
+    if (!projectDir) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/run-local/${projectDir}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.url) {
+        setPreviewUrl(data.url);
+        setActiveTab('preview');
+      }
+    } catch (e) {
+      console.error("Preview failed", e);
+    }
+  };
 
   /* ── Scroll-triggered entrance ── */
   useEffect(() => {
@@ -207,10 +223,25 @@ export default function Workspace({ agentStates, logs, plan, taskPlan, projectDi
               <span className="t-dot t-yellow" />
               <span className="t-dot t-green" />
             </div>
-            <span className="t-title">agent.log</span>
+            <div className="t-tabs">
+              <button 
+                className={`t-tab ${activeTab === 'terminal' ? 'active' : ''}`}
+                onClick={() => setActiveTab('terminal')}
+              >
+                agent.log
+              </button>
+              {projectDir && (
+                <button 
+                  className={`t-tab ${activeTab === 'preview' ? 'active' : ''}`}
+                  onClick={previewUrl ? () => setActiveTab('preview') : handlePreview}
+                >
+                  Live Preview ▶
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="terminal-body" ref={termRef}>
+          <div className="terminal-body" ref={termRef} style={{ display: activeTab === 'terminal' ? 'block' : 'none' }}>
             {logs.length === 0 ? (
               <div className="terminal-welcome">
                 <pre className="ascii-art">{`
@@ -242,6 +273,12 @@ export default function Workspace({ agentStates, logs, plan, taskPlan, projectDi
               ))
             )}
           </div>
+
+          {activeTab === 'preview' && (
+            <div className="preview-body">
+              <iframe src={previewUrl} title="Live Preview" className="preview-iframe" sandbox="allow-scripts allow-same-origin" />
+            </div>
+          )}
         </div>
       </div>
     </section>

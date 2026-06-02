@@ -33,6 +33,7 @@ export interface AgentRunState {
   generatedFiles: string[]
   progress: number
   isSimulated: boolean
+  prompt: string
   run: (prompt: string) => void
   clearAll: () => void
 }
@@ -51,6 +52,7 @@ export function useAgentRun(): AgentRunState {
   const [generatedFiles, setGeneratedFiles] = useState<string[]>([])
   const [progress, setProgress] = useState(0)
   const [isSimulated, setIsSimulated] = useState(false)
+  const [prompt, setPrompt] = useState('')
   const abortRef = useRef<AbortController | null>(null)
 
   const addLog = useCallback((line: string, agent: string) => {
@@ -68,10 +70,12 @@ export function useAgentRun(): AgentRunState {
     setGeneratedFiles([])
     setProgress(0)
     setIsSimulated(false)
+    setPrompt('')
   }, [])
 
   const run = useCallback(async (prompt: string) => {
     clearAll()
+    setPrompt(prompt)
     setStatus('running')
 
     const ctrl = new AbortController()
@@ -278,6 +282,11 @@ export function useAgentRun(): AgentRunState {
           case 'done':
             setProgress(100)
             setStatus('done')
+            setAgentStates({
+              planner: 'done',
+              architect: 'done',
+              coder: 'done',
+            })
             break
 
           case 'error':
@@ -316,5 +325,5 @@ export function useAgentRun(): AgentRunState {
     }
   }, [clearAll, addLog])
 
-  return { status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, run, clearAll }
+  return { status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt, run, clearAll }
 }

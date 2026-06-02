@@ -1,3 +1,4 @@
+import contextvars
 import pathlib
 import subprocess
 import threading
@@ -5,21 +6,21 @@ from typing import Tuple
 
 from langchain_core.tools import tool
 
-# ── Per-thread project root ───────────────────────────────────────────────────
-# Each run lives in its own thread (see api.py), so threading.local() gives
-# every project generation its own isolated output folder.
-_thread_local = threading.local()
+# ── Per-run project root ──────────────────────────────────────────────────────
+# Using contextvars ensures that each agent run (which runs in its own context/thread)
+# has its own isolated project root, making concurrent runs thread-safe.
 _DEFAULT_ROOT = pathlib.Path.cwd() / "generated_projects" / "default_project"
+_project_root_var = contextvars.ContextVar("project_root", default=_DEFAULT_ROOT)
 
 
 def get_project_root() -> pathlib.Path:
-    return getattr(_thread_local, "project_root", _DEFAULT_ROOT)
+    return _project_root_var.get()
 
 
 def set_project_root(path: pathlib.Path) -> None:
     """Call this at the start of each coder run to set the output folder."""
     path.mkdir(parents=True, exist_ok=True)
-    _thread_local.project_root = path
+    _project_root_var.set(path)
 
 
 def safe_path_for_project(path: str) -> pathlib.Path:
