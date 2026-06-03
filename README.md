@@ -136,19 +136,19 @@ This shows how the AI agents work together in a pipeline:
 
 ```mermaid
 flowchart LR
-    start(["Start"]) --> planner["📋 Planner<br/>Analyzes your request<br/>Creates project plan"]
+    start(["▶ Start"]) --> planner["📋 Planner<br/>Analyzes your request<br/>Creates project plan"]
     planner --> architect["🏗️ Architect<br/>Breaks down into tasks<br/>Defines file structure"]
     architect --> coder["💻 Coder<br/>Writes the code<br/>Builds each file"]
     coder --> review{{"✅ Review<br/>Quality check"}}
     review -->|Needs fixes| coder
-    review -->|Ready| finish(["Project Created! 🎉"])
+    review -->|Ready| finish(["🎉 Project Ready!"])
 
-    style start fill:#90EE90
-    style planner fill:#ADD8E6
-    style architect fill:#FFB6C1
-    style coder fill:#FFD700
-    style review fill:#87CEFA
-    style finish fill:#90EE90
+    style start fill:#2E8B57,color:#fff,stroke:#1a5233,stroke-width:2px
+    style planner fill:#1E90FF,color:#fff,stroke:#0047AB,stroke-width:2px
+    style architect fill:#FF6347,color:#fff,stroke:#CC0000,stroke-width:2px
+    style coder fill:#FFD700,color:#000,stroke:#B8860B,stroke-width:2px
+    style review fill:#9370DB,color:#fff,stroke:#4B0082,stroke-width:2px
+    style finish fill:#32CD32,color:#000,stroke:#228B22,stroke-width:2px
 ```
 
 **Process Flow:**
