@@ -144,11 +144,11 @@ flowchart LR
     review -->|Ready| finish(["Project Created! 🎉"])
 
     style start fill:#90EE90
-    style planner fill:#87CEEB
+    style planner fill:#ADD8E6
     style architect fill:#FFB6C1
-    style coder fill:#DDA0DD
-    style review fill:#F0E68C
-    style finish fill:#98FB98
+    style coder fill:#FFD700
+    style review fill:#87CEFA
+    style finish fill:#90EE90
 ```
 
 **Process Flow:**
