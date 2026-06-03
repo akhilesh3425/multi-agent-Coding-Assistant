@@ -1,8 +1,8 @@
-# 🛠️ Coder Buddy
+# 🛠️ CodeVerse
 
-**Coder Buddy** is an AI-powered coding assistant built with [LangGraph](https://github.com/langchain-ai/langgraph). It acts like a team of expert developers working together to build your project from scratch.
+**CodeVerse** is an AI-powered coding assistant built with [LangGraph](https://github.com/langchain-ai/langgraph). It acts like a team of expert developers working together to build your project from scratch.
 
-## ❓ What is Coder Buddy?
+## ❓ What is CodeVerse?
 
 Imagine describing what you want to build in plain English, and an AI team automatically:
 
@@ -11,7 +11,7 @@ Imagine describing what you want to build in plain English, and an AI team autom
 - 💻 Writes all the code
 - ✅ Reviews everything for quality
 
-That's Coder Buddy! You simply describe what you want, and the AI team builds it for you — complete with all files, configurations, and ready-to-run code.
+That's CodeVerse! You simply describe what you want, and the AI team builds it for you — complete with all files, configurations, and ready-to-run code.
 
 ### Perfect For:
 
@@ -24,7 +24,7 @@ That's Coder Buddy! You simply describe what you want, and the AI team builds it
 
 ## 🏗️ How It Works
 
-Coder Buddy uses a **multi-agent system** where each AI agent has a specific role:
+CodeVerse uses a **multi-agent system** where each AI agent has a specific role:
 
 1. **Planner Agent** 📋
    - Reads your request and creates a detailed project plan

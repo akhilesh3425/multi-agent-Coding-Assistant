@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app" aria-label="Calculator application">
+    <header class="app__header">
+      <h1 class="app__title">Calculator</h1>
+      <p class="app__subtitle">A responsive, lightweight calculator interface.</p>
+    </header>
+
+    <form class="calculator" id="calculatorForm">
+      <div class="field">
+        <label for="firstNumber">First Number</label>
+        <input id="firstNumber" type="number" placeholder="Enter first number" />
+      </div>
+
+      <div class="field">
+        <label for="secondNumber">Second Number</label>
+        <input id="secondNumber" type="number" placeholder="Enter second number" />
+      </div>
+
+      <div class="field">
+        <label for="operation">Operation</label>
+        <select id="operation">
+          <option value="add">Addition (+)</option>
+          <option value="subtract">Subtraction (-)</option>
+          <option value="multiply">Multiplication (×)</option>
+          <option value="divide">Division (÷)</option>
+        </select>
+      </div>
+
+      <div class="button-row">
+        <button class="button" id="calculateButton" type="button">Calculate</button>
+      </div>
+
+      <div id="result" class="result" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <script>
+    const firstNumberInput = document.getElementById('firstNumber');
+    const secondNumberInput = document.getElementById('secondNumber');
+    const operationSelect = document.getElementById('operation');
+    const calculateButton = document.getElementById('calculateButton');
+    const resultDisplay = document.getElementById('result');
+
+    calculateButton.addEventListener('click', () => {
+      resultDisplay.textContent = 'Calculation triggered.';
+    });
+  </script>
+</body>
+</html>

@@ -18,8 +18,7 @@ import webbrowser
 import http.server
 import socketserver
 from contextlib import asynccontextmanager
-from fastapi.responses import FileResponse, JSONResponse
-
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -224,3 +223,80 @@ async def get_project_files(project_dir: str):
                 pass
                 
     return {"files": files_content}
+
+
+@app.get("/api/project-view/{project_dir}")
+async def project_view(project_dir: str):
+    """Serve project as embedded HTML page for iframe preview"""
+    base_dir = pathlib.Path.cwd() / "generated_projects"
+    target_dir = (base_dir / project_dir).resolve()
+    
+    if base_dir.resolve() not in target_dir.parents and base_dir.resolve() != target_dir:
+        return JSONResponse(status_code=400, content={"error": "Access denied"})
+        
+    if not target_dir.exists() or not target_dir.is_dir():
+        return JSONResponse(status_code=404, content={"error": "Project not found"})
+
+    # Find and read index.html
+    index_path = target_dir / "index.html"
+    if not index_path.exists():
+        # Try to find any HTML file
+        html_files = list(target_dir.glob("*.html"))
+        if not html_files:
+            return JSONResponse(status_code=404, content={"error": "No HTML file found"})
+        index_path = html_files[0]
+
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+    # Inline CSS files
+    css_content = ""
+    for css_path in target_dir.glob("**/*.css"):
+        try:
+            with open(css_path, "r", encoding="utf-8") as f:
+                css_content += f"\n/* From {css_path.name} */\n{f.read()}\n"
+        except Exception:
+            pass
+
+    # Inline JS files
+    js_content = ""
+    for js_path in target_dir.glob("**/*.js"):
+        try:
+            with open(js_path, "r", encoding="utf-8") as f:
+                js_content += f"\n// From {js_path.name}\n{f.read()}\n"
+        except Exception:
+            pass
+
+    # Inject inlined CSS and JS
+    if css_content:
+        html_content = html_content.replace("</head>", f"<style>\n{css_content}\n</style></head>")
+    if js_content:
+        html_content = html_content.replace("</body>", f"<script>\n{js_content}\n</script></body>")
+
+    return HTMLResponse(content=html_content)
+
+
+@app.get("/api/project-assets/{project_dir}/{file_path:path}")
+async def project_asset(project_dir: str, file_path: str):
+    """Serve individual files from the project"""
+    base_dir = pathlib.Path.cwd() / "generated_projects"
+    target_dir = (base_dir / project_dir).resolve()
+    
+    if base_dir.resolve() not in target_dir.parents and base_dir.resolve() != target_dir:
+        return JSONResponse(status_code=400, content={"error": "Access denied"})
+        
+    if not target_dir.exists() or not target_dir.is_dir():
+        return JSONResponse(status_code=404, content={"error": "Project not found"})
+
+    # Safely resolve the file path
+    file_to_serve = (target_dir / file_path).resolve()
+    if target_dir.resolve() not in file_to_serve.parents and target_dir.resolve() != file_to_serve:
+        return JSONResponse(status_code=400, content={"error": "Access denied"})
+    
+    if not file_to_serve.exists() or not file_to_serve.is_file():
+        return JSONResponse(status_code=404, content={"error": "File not found"})
+
+    return FileResponse(path=file_to_serve)

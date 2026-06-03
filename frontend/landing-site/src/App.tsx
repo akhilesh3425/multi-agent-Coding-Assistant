@@ -5,10 +5,13 @@ import CollectionSection from './components/CollectionSection'
 import PromptSection from './components/PromptSection'
 import WorkspaceSection from './components/WorkspaceSection'
 import CTASection from './components/CTASection'
+import ProjectPreview from './components/ProjectPreview'
 import { useAgentRun } from './hooks/useAgentRun'
+import ReviewSection from './components/ReviewSection'
 
 export default function App() {
   const { status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt, review, run, clearAll } = useAgentRun()
+  const [showPreview, setShowPreview] = React.useState(false)
 
   return (
     <div className="bg-background text-cream min-h-screen relative">
@@ -51,6 +54,18 @@ export default function App() {
         prompt={prompt}
         review={review}
       />
+      <ReviewSection
+        status={status}
+        review={review}
+        plan={plan}
+      />
+      {showPreview && (
+        <ProjectPreview
+          projectDir={projectDir}
+          isSimulated={isSimulated}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
 
       <CTASection />
     </div>

@@ -32,7 +32,7 @@ export default function AboutSection() {
             >
               Hello!
               <br />
-              I'm Rana,
+              I'm CodeVerse,
               <br />
               your AI coding companion.
             </h2>

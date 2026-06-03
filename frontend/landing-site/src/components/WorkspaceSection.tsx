@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AgentId, AgentStatus, LogEntry, PlanData, RunStatus, TaskStep } from '../hooks/useAgentRun'
+import ProjectPreview from './ProjectPreview'
 
 const AGENT_META: Record<AgentId, { label: string; step: string }> = {
   planner: { label: 'Planner', step: 'PLAN' },
@@ -64,9 +65,11 @@ export default function WorkspaceSection({
   const [isRunningLocal, setIsRunningLocal] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [showMockApiExplorer, setShowMockApiExplorer] = useState(false)
   const [mockApiResponse, setMockApiResponse] = useState<string>('Click an endpoint on the left to invoke simulated API...')
-  const [showReview, setShowReview] = useState(false)
+
+  const [showProjectPreview, setShowProjectPreview] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -195,77 +198,59 @@ def create_token(user_id: int) -> str:
 
   const handleRunLocally = () => {
     if (isSimulated) {
-      // ---- Pure browser: no network calls, always works ----
+      // Simulated projects - use ProjectPreview modal
       const appType = getAppType()
       if (appType === 'api') {
+        // For API projects, show mock API explorer instead
         setShowMockApiExplorer(true)
-        setPreviewUrl(null)
+        setShowProjectPreview(false)
       } else {
+        // For Todo/Calculator projects, show live preview
         const html = appType === 'calculator'
           ? getCalculatorSimulatedHtml()
           : getTodoSimulatedHtml()
-        const blob = new Blob([html], { type: 'text/html' })
-        const url = URL.createObjectURL(blob)
-        setPreviewUrl(url)
+        setPreviewHtml(html)
+        setPreviewUrl(null)
         setShowMockApiExplorer(false)
+        setShowProjectPreview(true)
       }
-      setShowPreview(true)
     } else {
-      if (!projectDir) return
-      // ---- Real backend ----
-      setIsRunningLocal(true)
-      fetch(`/api/project-files/${projectDir}`)
-        .then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`)
-          return r.json() as Promise<{ files: Record<string, string> }>
-        })
-        .then(({ files }) => {
-          if (files['index.html']) {
-            let html = files['index.html']
-
-            // Dynamically gather and inject all CSS and JS files
-            let cssContent = ''
-            let jsContent = ''
-            Object.entries(files).forEach(([filepath, content]) => {
-              if (filepath.endsWith('.css')) {
-                cssContent += `\n/* --- Inline style from ${filepath} --- */\n${content}\n`
-              } else if (filepath.endsWith('.js')) {
-                jsContent += `\n// --- Inline script from ${filepath} ---\n${content}\n`
-              }
-            })
-
-            if (cssContent) {
-              html = html.replace('</head>', `<style>\n${cssContent}\n</style></head>`)
-            }
-            if (jsContent) {
-              html = html.replace('</body>', `<script>\n${jsContent}\n<\/script></body>`)
-            }
-
-            const blob = new Blob([html], { type: 'text/html' })
-            setPreviewUrl(URL.createObjectURL(blob))
-            setShowMockApiExplorer(false)
-            setShowPreview(true)
-          } else {
-            return fetch(`/api/run-local/${projectDir}`, { method: 'POST' })
-              .then(r => r.ok ? r.json() : null)
-              .then(data => data?.url && window.open(data.url, '_blank'))
-          }
-        })
-        .catch(() => {
-          showToast('⚠ Backend not reachable. Start the API server and try again.')
-        })
-        .finally(() => setIsRunningLocal(false))
+      if (!projectDir) {
+        showToast('⚠ No project directory available')
+        return
+      }
+      // ---- Real backend — use new ProjectPreview component ----
+      setPreviewUrl(null)
+      setPreviewHtml(null)
+      setShowProjectPreview(true)
     }
   }
 
   useEffect(() => {
-    if (status === 'done' && (isSimulated || projectDir)) {
-      const timer = setTimeout(() => {
-        handleRunLocally()
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-  }, [status, projectDir, isSimulated])
+    if (status !== 'done') return
+    const timer = setTimeout(() => {
+      if (isSimulated) {
+        const appType = getAppType()
+        if (appType === 'api') {
+          setShowMockApiExplorer(true)
+          setShowProjectPreview(false)
+        } else {
+          const html = appType === 'calculator'
+            ? getCalculatorSimulatedHtml()
+            : getTodoSimulatedHtml()
+          setPreviewHtml(html)
+          setPreviewUrl(null)
+          setShowMockApiExplorer(false)
+          setShowProjectPreview(true)
+        }
+      } else if (projectDir) {
+        setPreviewUrl(null)
+        setPreviewHtml(null)
+        setShowProjectPreview(true)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [status, isSimulated, projectDir, prompt])
 
   const handleMockApiCall = (action: string) => {
     switch (action) {
@@ -454,87 +439,29 @@ def create_token(user_id: int) -> str:
             </div>
 
             {/* Review button */}
-            {review && (
-              <button
-                onClick={() => setShowReview(!showReview)}
-                className="w-full font-mono text-[13px] uppercase text-cream border-2 border-neon/50 hover:border-neon hover:bg-neon/10 px-6 py-3 rounded-full transition-all duration-300 flex items-center justify-center gap-3 font-bold"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                {showReview ? 'Hide Review Report' : 'View Review Report'}
-              </button>
-            )}
+
+
+            {/* Run Preview button */}
+
+            {/* Download button */}
+            < button
+              onClick={handleDownloadZip}
+              disabled={isDownloading}
+              className="w-full font-mono text-[13px] uppercase text-cream border-2 border-neon/50 hover:border-neon hover:bg-neon/10 px-6 py-3 rounded-full transition-all duration-300 flex items-center justify-center gap-3 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {isDownloading ? 'Downloading...' : 'Download Project'}
+            </button>
 
             {/* Review Report Panel */}
-            {review && showReview && (
-              <div className="liquid-glass rounded-[28px] overflow-hidden border border-neon/20 shadow-[0_0_30px_rgba(111,255,0,0.05)]">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-black/20">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-neon shadow-[0_0_8px_rgba(111,255,0,0.5)]" />
-                    <span className="font-mono text-[11px] text-neon uppercase tracking-widest font-bold">
-                      📋 Review Report — {plan?.name || 'Project'}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 max-h-[600px] overflow-y-auto">
-                  <div className="font-mono text-[12px] text-cream/80 leading-relaxed space-y-4 whitespace-pre-wrap">
-                    {review.split('\n').map((line, i) => {
-                      if (line.startsWith('##')) {
-                        return (
-                          <div key={i} className="text-neon font-bold pt-2">
-                            {line.replace(/^#+\s*/, '')}
-                          </div>
-                        )
-                      }
-                      if (line.startsWith('#')) {
-                        return (
-                          <div key={i} className="text-neon/90 font-bold pt-2">
-                            {line.replace(/^#+\s*/, '')}
-                          </div>
-                        )
-                      }
-                      if (line.trim() === '') {
-                        return <div key={i} className="h-2" />
-                      }
-                      return (
-                        <div key={i} className="text-cream/70">
-                          {line}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {/* Embedded Live Preview Panel */}
-            {showPreview && previewUrl && (
-              <div className="liquid-glass rounded-[28px] overflow-hidden border border-neon/20 shadow-[0_0_30px_rgba(111,255,0,0.05)] mt-4">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-black/20">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-neon shadow-[0_0_8px_rgba(111,255,0,0.5)]" />
-                    <span className="font-mono text-[11px] text-neon uppercase tracking-widest">
-                      Live App Preview — {plan?.name || "Project"}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowPreview(false)}
-                    className="font-mono text-[11px] text-cream/40 hover:text-red-400 uppercase tracking-widest transition-colors"
-                  >
-                    Close [x]
-                  </button>
-                </div>
-                <div className="bg-white h-[500px] w-full relative">
-                  <iframe
-                    src={previewUrl}
-                    className="w-full h-full border-none"
-                    title="Live App Preview"
-                  />
-                </div>
-              </div>
-            )}
+
 
             {/* FastAPI Interactive API Explorer Mock */}
             {showPreview && showMockApiExplorer && (
@@ -601,8 +528,23 @@ def create_token(user_id: int) -> str:
             )}
           </div>
         )}
+
+        {/* Project Preview Modal for Real Projects */}
+        {showProjectPreview && (
+          <ProjectPreview
+            projectDir={projectDir}
+            isSimulated={isSimulated}
+            previewUrl={previewUrl}
+            previewHtml={previewHtml}
+            onClose={() => {
+              setShowProjectPreview(false)
+              setPreviewUrl(null)
+              setPreviewHtml(null)
+            }}
+          />
+        )}
       </div>
-    </section>
+    </section >
   )
 }
 

@@ -124,7 +124,6 @@ export function useAgentRun(): AgentRunState {
       const runSimulation = async () => {
         setIsSimulated(true);
         try {
-          // Parse prompt keywords to customize simulated output
           let appName = "Colorful Modern Todo App";
           let appDesc =
             "A beautiful, modern todo list with custom categories, local storage persistence, and transition effects.";
@@ -229,7 +228,7 @@ export function useAgentRun(): AgentRunState {
           addLog(`> Prompt: "${prompt}"`, "system");
           await sleep(600);
 
-          // Planner start
+          // Planner
           updateAgent("planner", "running");
           addLog("[PLANNER] Analyzing requirements…", "planner");
           await sleep(1500);
@@ -244,12 +243,9 @@ export function useAgentRun(): AgentRunState {
           updateAgent("planner", "done");
           await sleep(600);
 
-          // Architect start
+          // Architect
           updateAgent("architect", "running");
-          addLog(
-            "[ARCHITECT] Breaking down implementation tasks…",
-            "architect",
-          );
+          addLog("[ARCHITECT] Breaking down implementation tasks…", "architect");
           await sleep(1800);
           setTaskPlan(appTasks);
           addLog(
@@ -259,7 +255,7 @@ export function useAgentRun(): AgentRunState {
           updateAgent("architect", "done");
           await sleep(800);
 
-          // Coder start
+          // Coder
           updateAgent("coder", "running");
           const safeName = appName
             .toLowerCase()
@@ -275,10 +271,7 @@ export function useAgentRun(): AgentRunState {
 
           for (let i = 0; i < appTasks.length; i++) {
             const task = appTasks[i];
-            addLog(
-              `[CODER] Task ${i + 1}/${appTasks.length}: ${task.filepath}`,
-              "coder",
-            );
+            addLog(`[CODER] Task ${i + 1}/${appTasks.length}: ${task.filepath}`, "coder");
             await sleep(1500);
             addLog(`[CODER] ✓ WROTE: ${task.filepath}`, "coder");
             setGeneratedFiles((prev) => {
@@ -292,52 +285,75 @@ export function useAgentRun(): AgentRunState {
           updateAgent("coder", "done");
           await sleep(800);
 
-          // Reviewer start
+          // Reviewer — calls Groq LLaMA 3.3-70b
           addLog("[REVIEWER] Reviewing generated project…", "reviewer");
-          await sleep(1500);
-          const reviewContent = `## 1. Completeness
-All ${appTasks.length} implementation steps addressed successfully.
+          await sleep(500);
 
-## 2. Consistency
-Naming conventions and file imports are fully consistent.
+          try {
+            const reviewRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                max_tokens: 1000,
+                messages: [
+                  {
+                    role: "system",
+                    content: "You are a senior code reviewer. Be concise and specific.",
+                  },
+                  {
+                    role: "user",
+                    content: `Review this generated project and provide a report.
 
+Project: ${appName}
+Description: ${appDesc}
+Tech Stack: ${appTech}
+Features: ${appFeatures.join(", ")}
+Files generated: ${appFiles.join(", ")}
+Tasks completed: ${appTasks.length}
+
+Provide a review with these sections:
+## 1. Completeness
+## 2. Code Quality
 ## 3. Potential Issues
-No critical bugs found. Local storage and routes operate properly.
+## 4. Summary`,
+                  },
+                ],
+              }),
+            });
 
-## Summary
-The generated project meets all requirements and is production-ready.`;
-          addLog("== REVIEW REPORT ==", "reviewer");
-          addLog("### 1. Completeness", "reviewer");
-          addLog(
-            `All ${appTasks.length} implementation steps addressed successfully.`,
-            "reviewer",
-          );
-          addLog("### 2. Consistency", "reviewer");
-          addLog(
-            "Naming conventions and file imports are fully consistent.",
-            "reviewer",
-          );
-          addLog("### 3. Potential Issues", "reviewer");
-          addLog(
-            "No critical bugs found. Local storage and routes operate properly.",
-            "reviewer",
-          );
-          addLog("[REVIEWER] ✓ Review complete.", "reviewer");
-          setReview(reviewContent);
+            const reviewData = await reviewRes.json();
+            const reviewContent =
+              reviewData.choices?.[0]?.message?.content ?? "Review could not be generated.";
+            addLog("[REVIEWER] ✓ Review complete.", "reviewer");
+            setReview(reviewContent);
+          } catch (err) {
+            console.error("Review fetch failed:", err);
+            setReview(
+              `## 1. Completeness\nAll ${appTasks.length} tasks completed.\n\n## 2. Code Quality\nFollows standard conventions.\n\n## 3. Potential Issues\nNone critical.\n\n## 4. Summary\nProject is ready.`,
+            );
+            addLog("[REVIEWER] ✓ Review complete (offline).", "reviewer");
+          }
+
           await sleep(800);
 
-          // Success final
+          // Done
           addLog("✓ Project generation complete!", "success");
-          addLog(`  Output directory: generated_project/`, "success");
+          addLog(`  Output directory: generated_projects/${projectFolderName}`, "success");
           setProgress(100);
           setStatus("done");
+
         } catch (simErr: any) {
           if (simErr?.name !== "AbortError") {
             console.error("[Simulation] Failed during run:", simErr);
           }
         }
-      };
+      }; // <-- runSimulation closes here
 
+      // Real backend attempt
       try {
         const res = await fetch("/api/run", {
           method: "POST",
@@ -360,53 +376,39 @@ The generated project meets all requirements and is production-ready.`;
         const dec = new TextDecoder();
         let buf = "";
 
-        // ── SSE event dispatcher (defined before the loop so it's always in scope) ──
         function handle(event: string, data: any) {
           switch (event) {
             case "agent_start":
               if (["planner", "architect", "coder"].includes(data.agent))
                 updateAgent(data.agent as AgentId, "running");
               break;
-
             case "agent_done":
               if (["planner", "architect", "coder"].includes(data.agent))
                 updateAgent(data.agent as AgentId, "done");
               break;
-
             case "log":
               addLog(data.line, data.agent ?? "system");
               break;
-
             case "task_plan":
-              setTaskPlan(data.steps); // [{filepath, task_description}, ...]
+              setTaskPlan(data.steps);
               break;
-
             case "project_dir":
               setProjectDir(data.path);
               break;
-
             case "plan":
               setPlan(data);
               break;
-
             case "file_written":
               setGeneratedFiles((prev) => [...prev, data.path]);
               break;
-
             case "review":
               setReview(data.content);
               break;
-
             case "done":
               setProgress(100);
               setStatus("done");
-              setAgentStates({
-                planner: "done",
-                architect: "done",
-                coder: "done",
-              });
+              setAgentStates({ planner: "done", architect: "done", coder: "done" });
               break;
-
             case "error":
               addLog(`Error: ${data.message}`, "system");
               setStatus("error");
@@ -414,7 +416,6 @@ The generated project meets all requirements and is production-ready.`;
           }
         }
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;

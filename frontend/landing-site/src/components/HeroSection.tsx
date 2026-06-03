@@ -32,7 +32,7 @@ export default function HeroSection() {
       <div className="relative z-10 flex items-center justify-between px-6 sm:px-10 pt-8 max-w-[1831px] mx-auto w-full">
         {/* Logo */}
         <span className="font-grotesk text-[16px] uppercase text-cream tracking-widest">
-          Jarvis Buddy
+          CodeVerse.AI
         </span>
 
         {/* Desktop Nav */}
