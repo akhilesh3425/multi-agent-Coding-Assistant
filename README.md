@@ -141,14 +141,14 @@ flowchart LR
     architect --> coder["💻 Coder<br/>Writes the code<br/>Builds each file"]
     coder --> review{{"✅ Review<br/>Quality check"}}
     review -->|Needs fixes| coder
-    review -->|Ready| end(["Project Created! 🎉"])
+    review -->|Ready| finish(["Project Created! 🎉"])
 
     style start fill:#90EE90
     style planner fill:#87CEEB
     style architect fill:#FFB6C1
     style coder fill:#DDA0DD
     style review fill:#F0E68C
-    style end fill:#98FB98
+    style finish fill:#98FB98
 ```
 
 **Process Flow:**
