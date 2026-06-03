@@ -2,18 +2,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import { AgentId, AgentStatus, LogEntry, PlanData, RunStatus, TaskStep } from '../hooks/useAgentRun'
 
 const AGENT_META: Record<AgentId, { label: string; step: string }> = {
-  planner:   { label: 'Planner',   step: 'PLAN'   },
+  planner: { label: 'Planner', step: 'PLAN' },
   architect: { label: 'Architect', step: 'DESIGN' },
-  coder:     { label: 'Coder',     step: 'BUILD'  },
+  coder: { label: 'Coder', step: 'BUILD' },
 }
 
 const LOG_COLOR: Record<string, string> = {
-  planner:   'text-purple-400',
+  planner: 'text-purple-400',
   architect: 'text-cyan-400',
-  coder:     'text-neon',
-  reviewer:  'text-neon',
-  success:   'text-neon',
-  system:    'text-cream/30',
+  coder: 'text-neon',
+  reviewer: 'text-neon',
+  success: 'text-neon',
+  system: 'text-cream/30',
 }
 
 interface Props {
@@ -27,14 +27,15 @@ interface Props {
   progress: number
   isSimulated: boolean
   prompt: string
+  review: string | null
 }
 
 function AgentRow({ id, state }: { id: AgentId; state: AgentStatus }) {
   const m = AGENT_META[id]
   const dotColor =
     state === 'running' ? 'bg-yellow-400 shadow-[0_0_8px_2px_rgba(250,204,21,0.5)]'
-    : state === 'done'  ? 'bg-neon   shadow-[0_0_8px_2px_rgba(111,255,0,0.4)]'
-    :                     'bg-white/20'
+      : state === 'done' ? 'bg-neon   shadow-[0_0_8px_2px_rgba(111,255,0,0.4)]'
+        : 'bg-white/20'
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
@@ -55,7 +56,7 @@ function AgentRow({ id, state }: { id: AgentId; state: AgentStatus }) {
 }
 
 export default function WorkspaceSection({
-  status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt,
+  status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt, review,
 }: Props) {
   const termRef = useRef<HTMLDivElement>(null)
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
@@ -65,6 +66,7 @@ export default function WorkspaceSection({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showMockApiExplorer, setShowMockApiExplorer] = useState(false)
   const [mockApiResponse, setMockApiResponse] = useState<string>('Click an endpoint on the left to invoke simulated API...')
+  const [showReview, setShowReview] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -77,7 +79,7 @@ export default function WorkspaceSection({
     const lower = prompt.toLowerCase()
     if (lower.includes('calc') || lower.includes('calculator')) return 'calculator'
     if (lower.includes('blog') || lower.includes('api') || lower.includes('fastapi') ||
-        lower.includes('flask') || lower.includes('django') || lower.includes('python')) return 'api'
+      lower.includes('flask') || lower.includes('django') || lower.includes('python')) return 'api'
     return 'todo'
   }
 
@@ -203,7 +205,7 @@ def create_token(user_id: int) -> str:
           ? getCalculatorSimulatedHtml()
           : getTodoSimulatedHtml()
         const blob = new Blob([html], { type: 'text/html' })
-        const url  = URL.createObjectURL(blob)
+        const url = URL.createObjectURL(blob)
         setPreviewUrl(url)
         setShowMockApiExplorer(false)
       }
@@ -220,7 +222,7 @@ def create_token(user_id: int) -> str:
         .then(({ files }) => {
           if (files['index.html']) {
             let html = files['index.html']
-            
+
             // Dynamically gather and inject all CSS and JS files
             let cssContent = ''
             let jsContent = ''
@@ -389,7 +391,7 @@ def create_token(user_id: int) -> str:
                   {generatedFiles.map(f => (
                     <div key={f} className="flex items-center gap-2">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neon flex-shrink-0">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
                       </svg>
                       <span className="font-mono text-[12px] text-cream/70">{f}</span>
                     </div>
@@ -443,49 +445,70 @@ def create_token(user_id: int) -> str:
         {/* Done badge and Operations Controls */}
         {status === 'done' && (
           <div className="mt-10 flex flex-col gap-6">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-3 mr-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-neon shadow-[0_0_10px_rgba(111,255,0,0.6)]" />
-                <span className="font-mono text-[13px] uppercase text-neon tracking-widest font-bold">
-                  Project complete!
-                </span>
-              </div>
-              
-              <button
-                onClick={handleDownloadZip}
-                disabled={isDownloading}
-                className="font-mono text-[12px] uppercase text-background bg-neon hover:bg-neon/90 disabled:bg-neon/50 px-6 py-2.5 rounded-full transition-all duration-300 font-bold flex items-center gap-2"
-              >
-                {isDownloading ? (
-                  <span>Zipping...</span>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                    </svg>
-                    Download ZIP
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={handleRunLocally}
-                disabled={isRunningLocal}
-                className="font-mono text-[12px] uppercase text-cream border border-cream/30 hover:border-neon hover:text-neon disabled:opacity-50 px-6 py-2.5 rounded-full transition-all duration-300 flex items-center gap-2"
-              >
-                {isRunningLocal ? (
-                  <span>Launching...</span>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
-                      <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                    {isSimulated ? "Preview App Live" : "Run App Locally"}
-                  </>
-                )}
-              </button>
+            {/* Status line */}
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-neon shadow-[0_0_10px_rgba(111,255,0,0.6)]" />
+              <span className="font-mono text-[13px] uppercase text-neon tracking-widest font-bold">
+                Project complete!
+              </span>
             </div>
-            
+
+            {/* Review button */}
+            {review && (
+              <button
+                onClick={() => setShowReview(!showReview)}
+                className="w-full font-mono text-[13px] uppercase text-cream border-2 border-neon/50 hover:border-neon hover:bg-neon/10 px-6 py-3 rounded-full transition-all duration-300 flex items-center justify-center gap-3 font-bold"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                {showReview ? 'Hide Review Report' : 'View Review Report'}
+              </button>
+            )}
+
+            {/* Review Report Panel */}
+            {review && showReview && (
+              <div className="liquid-glass rounded-[28px] overflow-hidden border border-neon/20 shadow-[0_0_30px_rgba(111,255,0,0.05)]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-black/20">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-neon shadow-[0_0_8px_rgba(111,255,0,0.5)]" />
+                    <span className="font-mono text-[11px] text-neon uppercase tracking-widest font-bold">
+                      📋 Review Report — {plan?.name || 'Project'}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6 max-h-[600px] overflow-y-auto">
+                  <div className="font-mono text-[12px] text-cream/80 leading-relaxed space-y-4 whitespace-pre-wrap">
+                    {review.split('\n').map((line, i) => {
+                      if (line.startsWith('##')) {
+                        return (
+                          <div key={i} className="text-neon font-bold pt-2">
+                            {line.replace(/^#+\s*/, '')}
+                          </div>
+                        )
+                      }
+                      if (line.startsWith('#')) {
+                        return (
+                          <div key={i} className="text-neon/90 font-bold pt-2">
+                            {line.replace(/^#+\s*/, '')}
+                          </div>
+                        )
+                      }
+                      if (line.trim() === '') {
+                        return <div key={i} className="h-2" />
+                      }
+                      return (
+                        <div key={i} className="text-cream/70">
+                          {line}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Embedded Live Preview Panel */}
             {showPreview && previewUrl && (
               <div className="liquid-glass rounded-[28px] overflow-hidden border border-neon/20 shadow-[0_0_30px_rgba(111,255,0,0.05)] mt-4">
@@ -496,7 +519,7 @@ def create_token(user_id: int) -> str:
                       Live App Preview — {plan?.name || "Project"}
                     </span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowPreview(false)}
                     className="font-mono text-[11px] text-cream/40 hover:text-red-400 uppercase tracking-widest transition-colors"
                   >
@@ -504,15 +527,15 @@ def create_token(user_id: int) -> str:
                   </button>
                 </div>
                 <div className="bg-white h-[500px] w-full relative">
-                  <iframe 
-                    src={previewUrl} 
-                    className="w-full h-full border-none" 
+                  <iframe
+                    src={previewUrl}
+                    className="w-full h-full border-none"
                     title="Live App Preview"
                   />
                 </div>
               </div>
             )}
-            
+
             {/* FastAPI Interactive API Explorer Mock */}
             {showPreview && showMockApiExplorer && (
               <div className="liquid-glass rounded-[28px] overflow-hidden border border-neon/20 shadow-[0_0_30px_rgba(111,255,0,0.05)] mt-4 p-6">
@@ -523,37 +546,37 @@ def create_token(user_id: int) -> str:
                       API Explorer — {plan?.name || "Project"}
                     </span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowPreview(false)}
                     className="font-mono text-[11px] text-cream/40 hover:text-red-400 uppercase tracking-widest transition-colors"
                   >
                     Close [x]
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column: Endpoints & Request */}
                   <div className="bg-black/30 border border-white/5 rounded-xl p-4 flex flex-col gap-4">
                     <h4 className="font-grotesk text-[14px] uppercase text-cream tracking-wide">Endpoints</h4>
-                    
+
                     <div className="flex flex-col gap-2">
-                      <button 
+                      <button
                         onClick={() => handleMockApiCall('GET_POSTS')}
                         className="flex items-center justify-between p-2.5 rounded bg-white/5 hover:bg-white/10 text-left transition-all"
                       >
                         <span className="font-mono text-[12px] text-green-400 font-bold">GET /posts</span>
                         <span className="font-mono text-[10px] text-cream/40 uppercase">List Posts</span>
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={() => handleMockApiCall('CREATE_POST')}
                         className="flex items-center justify-between p-2.5 rounded bg-white/5 hover:bg-white/10 text-left transition-all"
                       >
                         <span className="font-mono text-[12px] text-blue-400 font-bold">POST /posts</span>
                         <span className="font-mono text-[10px] text-cream/40 uppercase">Create Post</span>
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={() => handleMockApiCall('GET_POST_1')}
                         className="flex items-center justify-between p-2.5 rounded bg-white/5 hover:bg-white/10 text-left transition-all"
                       >
@@ -562,7 +585,7 @@ def create_token(user_id: int) -> str:
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Right Column: Console Response */}
                   <div className="bg-black/50 border border-white/5 rounded-xl p-4 flex flex-col h-[300px]">
                     <div className="flex items-center justify-between mb-2">

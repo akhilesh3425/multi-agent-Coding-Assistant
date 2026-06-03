@@ -1,7 +1,12 @@
 import pathlib
 import re
+import sys
 import warnings
 from datetime import datetime
+
+# Add project root to path to ensure agent module can be imported
+project_root = pathlib.Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from dotenv import load_dotenv
 from langchain_core.globals import set_verbose, set_debug
@@ -38,7 +43,7 @@ set_verbose(True)
 # ── Per-agent models ──────────────────────────────────────────────────────────
 planner_llm   = ChatGroq(model="llama-3.3-70b-versatile")
 architect_llm = ChatGroq(model="llama-3.3-70b-versatile")  # reliable structured output
-coder_llm     = ChatOpenAI(model="gpt-4o-mini")            # Openai handles large file-writing tool calls reliably
+coder_llm     = ChatOpenAI(model="gpt-5.4-mini")            # Openai handles large file-writing tool calls reliably
 reviewer_llm  = ChatGroq(model="llama-3.3-70b-versatile")
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -168,6 +173,7 @@ def reviewer_agent(state: dict) -> dict:
     review_content = resp.content if hasattr(resp, "content") else str(resp)
     print("\n== REVIEW REPORT ==\n", review_content)
     _emit(state, "log", {"agent": "reviewer", "line": "[REVIEWER] ✓ Review complete."})
+    _emit(state, "review", {"content": review_content})
     _emit(state, "agent_done", {"agent": "reviewer"})
     return {"review": review_content, "status": "DONE"}
 
@@ -199,6 +205,8 @@ graph.add_edge("reviewer", END)
 
 graph.set_entry_point("planner")
 agent = graph.compile()
+
+
 
 if __name__ == "__main__":
     result = agent.invoke({"user_prompt": "Build a colourful modern todo app in html css and js"},

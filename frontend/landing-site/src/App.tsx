@@ -8,7 +8,7 @@ import CTASection from './components/CTASection'
 import { useAgentRun } from './hooks/useAgentRun'
 
 export default function App() {
-  const { status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt, run, clearAll } = useAgentRun()
+  const { status, agentStates, logs, plan, taskPlan, projectDir, generatedFiles, progress, isSimulated, prompt, review, run, clearAll } = useAgentRun()
 
   return (
     <div className="bg-background text-cream min-h-screen relative">
@@ -49,6 +49,7 @@ export default function App() {
         progress={progress}
         isSimulated={isSimulated}
         prompt={prompt}
+        review={review}
       />
 
       <CTASection />

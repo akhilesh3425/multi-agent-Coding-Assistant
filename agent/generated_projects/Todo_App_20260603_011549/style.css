@@ -1,0 +1,60 @@
+.todo-app {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: auto;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+.todo-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.todo-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.high-priority {
+    background-color: #ffcccc;
+}
+
+.medium-priority {
+    background-color: #fff5cc;
+}
+
+.low-priority {
+    background-color: #ccffcc;
+}
+
+.button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    opacity: 0.8;
+}
+
+.button-add {
+    background-color: #28a745;
+    color: white;
+}
+
+.button-remove {
+    background-color: #dc3545;
+    color: white;
+}
